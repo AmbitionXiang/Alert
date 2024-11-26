@@ -5,7 +5,7 @@ import org.apache.spark.sql.functions._
 
 class Q12 extends TpchQuery {
 
-  override def execute(spark: SparkSession, schemaProvider: TpchSchemaProvider): DataFrame = {
+  override def execute(spark: SparkSession, schemaProvider: TpchSchemaProvider): Seq[DataFrame] = {
     import spark.implicits._
     import schemaProvider._
 
@@ -13,7 +13,7 @@ class Q12 extends TpchQuery {
     val highPriority = udf { (x: String) => if (x == "1-URGENT" || x == "2-HIGH") 1 else 0 }
     val lowPriority = udf { (x: String) => if (x != "1-URGENT" && x != "2-HIGH") 1 else 0 }
 
-    lineitem.filter((
+    Seq(lineitem.filter((
       $"l_shipmode" === "MAIL" || $"l_shipmode" === "SHIP") &&
       $"l_commitdate" < $"l_receiptdate" &&
       $"l_shipdate" < $"l_commitdate" &&
@@ -23,7 +23,7 @@ class Q12 extends TpchQuery {
       .groupBy($"l_shipmode")
       .agg(sum(highPriority($"o_orderpriority")).as("sum_highorderpriority"),
         sum(lowPriority($"o_orderpriority")).as("sum_loworderpriority"))
-      .sort($"l_shipmode")
+      .sort($"l_shipmode"))
   }
 
 }

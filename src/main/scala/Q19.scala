@@ -5,7 +5,7 @@ import org.apache.spark.sql.functions._
 
 class Q19 extends TpchQuery {
 
-  override def execute(spark: SparkSession, schemaProvider: TpchSchemaProvider): DataFrame = {
+  override def execute(spark: SparkSession, schemaProvider: TpchSchemaProvider): Seq[DataFrame] = {
     import spark.implicits._
     import schemaProvider._
 
@@ -14,9 +14,10 @@ class Q19 extends TpchQuery {
     val lg = udf { (x: String) => x.matches("LG CASE|LG BOX|LG PACK|LG PKG") }
 
     val decrease = udf { (x: Double, y: Double) => x * (1 - y) }
+    val decreaseString = udf { (x: String, y: String) => s"($x)*(1-($y))" }
 
     // project part and lineitem first?
-    part.join(lineitem, $"l_partkey" === $"p_partkey")
+    Seq(part.join(lineitem, $"l_partkey" === $"p_partkey")
       .filter(($"l_shipmode" === "AIR" || $"l_shipmode" === "AIR REG") &&
         $"l_shipinstruct" === "DELIVER IN PERSON")
       .filter(
@@ -32,8 +33,8 @@ class Q19 extends TpchQuery {
               lg($"p_container") &&
               $"l_quantity" >= 20 && $"l_quantity" <= 30 &&
               $"p_size" >= 1 && $"p_size" <= 15))
-      .select(decrease($"l_extendedprice", $"l_discount").as("volume"))
-      .agg(sum("volume"))
+      .select(decrease($"l_extendedprice", $"l_discount").as("volume"), decreaseString($"l_extendedprice_var", $"l_discount_var").as("volume_var"))
+      .agg(sum("volume"), concat_ws("+", collect_list($"volume_var"))))
   }
 
 }

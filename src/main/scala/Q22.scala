@@ -5,7 +5,7 @@ import org.apache.spark.sql.functions._
 
 class Q22 extends TpchQuery {
 
-  override def execute(spark: SparkSession, schemaProvider: TpchSchemaProvider): DataFrame = {
+  override def execute(spark: SparkSession, schemaProvider: TpchSchemaProvider): Seq[DataFrame] = {
     import spark.implicits._
     import schemaProvider._
 
@@ -13,13 +13,13 @@ class Q22 extends TpchQuery {
     val phone = udf { (x: String) => x.matches("13|31|23|29|30|18|17") }
     val isNull = udf { (x: Any) => println(x); true }
 
-    val fcustomer = customer.select($"c_acctbal", $"c_custkey", sub2($"c_phone").as("cntrycode"))
+    val fcustomer = customer.select($"c_acctbal", $"c_acctbal_var", $"c_custkey", sub2($"c_phone").as("cntrycode"))
       .filter(phone($"cntrycode"))
 
     val avg_customer = fcustomer.filter($"c_acctbal" > 0.0)
       .agg(avg($"c_acctbal").as("avg_acctbal"))
 
-    order.groupBy($"o_custkey")
+    Seq(order.groupBy($"o_custkey")
       .agg($"o_custkey").select($"o_custkey")
       .join(fcustomer, $"o_custkey" === fcustomer("c_custkey"), "right_outer")
       //.filter("o_custkey is null")
@@ -27,7 +27,7 @@ class Q22 extends TpchQuery {
       .join(avg_customer)
       .filter($"c_acctbal" > $"avg_acctbal")
       .groupBy($"cntrycode")
-      .agg(count($"c_acctbal"), sum($"c_acctbal"))
-      .sort($"cntrycode")
+      .agg(count($"c_acctbal"), sum($"c_acctbal"), concat_ws("+", collect_list($"c_acctbal_var")))
+      .sort($"cntrycode"))
   }
 }

@@ -5,7 +5,7 @@ import org.apache.spark.sql.functions._
 
 class Q04 extends TpchQuery {
 
-  override def execute(spark: SparkSession, schemaProvider: TpchSchemaProvider): DataFrame = {
+  override def execute(spark: SparkSession, schemaProvider: TpchSchemaProvider): Seq[DataFrame] = {
     import spark.implicits._
     import schemaProvider._
 
@@ -14,10 +14,10 @@ class Q04 extends TpchQuery {
       .select($"l_orderkey")
       .distinct
 
-    flineitems.join(forders, $"l_orderkey" === forders("o_orderkey"))
+    Seq(flineitems.join(forders, $"l_orderkey" === forders("o_orderkey"))
       .groupBy($"o_orderpriority")
       .agg(count($"o_orderpriority"))
-      .sort($"o_orderpriority")
+      .sort($"o_orderpriority"))
   }
 
 }

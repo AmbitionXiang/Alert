@@ -5,12 +5,14 @@ import org.apache.spark.sql.functions._
 
 class Q06 extends TpchQuery {
 
-  override def execute(spark: SparkSession, schemaProvider: TpchSchemaProvider): DataFrame = {
+  override def execute(spark: SparkSession, schemaProvider: TpchSchemaProvider): Seq[DataFrame] = {
     import spark.implicits._
     import schemaProvider._
 
-    lineitem.filter($"l_shipdate" >= "1994-01-01" && $"l_shipdate" < "1995-01-01" && $"l_discount" >= 0.05 && $"l_discount" <= 0.07 && $"l_quantity" < 24)
-      .agg(sum($"l_extendedprice" * $"l_discount"))
+    val multString = udf { (x: String, y: String) => s"($x)*($y)" }
+
+    Seq(lineitem.filter($"l_shipdate" >= "1994-01-01" && $"l_shipdate" < "1995-01-01" && $"l_discount" >= 0.05 && $"l_discount" <= 0.07 && $"l_quantity" < 24)
+      .agg(sum($"l_extendedprice" * $"l_discount"), concat_ws("+", collect_list(multString($"l_extendedprice_var", $"l_discount_var")))))
   }
 
 }

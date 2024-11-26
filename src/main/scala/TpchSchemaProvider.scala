@@ -10,6 +10,7 @@ case class Customer(
   c_nationkey: Long,
   c_phone: String,
   c_acctbal: Double,
+  c_acctbal_var: String, // variable
   c_mktsegment: String,
   c_comment: String)
 
@@ -19,9 +20,13 @@ case class Lineitem(
   l_suppkey: Long,
   l_linenumber: Long, // primary key
   l_quantity: Double,
+  l_quantity_var: String, // variable
   l_extendedprice: Double,
+  l_extendedprice_var: String, // variable
   l_discount: Double,
+  l_discount_var: String, // variable
   l_tax: Double,
+  l_tax_var: String, // variable
   l_returnflag: String,
   l_linestatus: String,
   l_shipdate: String,
@@ -42,6 +47,7 @@ case class Order(
   o_custkey: Long,
   o_orderstatus: String,
   o_totalprice: Double,
+  o_totalprice_var: String, // variable
   o_orderdate: String,
   o_orderpriority: String,
   o_clerk: String,
@@ -57,13 +63,16 @@ case class Part(
   p_size: Long,
   p_container: String,
   p_retailprice: Double,
+  p_retailprice_var: String,  //variable
   p_comment: String)
 
 case class Partsupp(
   ps_partkey: Long,   // primary key
   ps_suppkey: Long,   // primary key
   ps_availqty: Long,
+  ps_availqty_var: String, // variable
   ps_supplycost: Double,
+  ps_supplycost_var: String, // variable
   ps_comment: String)
 
 case class Region(
@@ -78,6 +87,7 @@ case class Supplier(
   s_nationkey: Long,
   s_phone: String,
   s_acctbal: Double,
+  s_acctbal_var: String,  // variable
   s_comment: String)
 
 class TpchSchemaProvider(spark: SparkSession, inputDir: String) {
@@ -85,10 +95,10 @@ class TpchSchemaProvider(spark: SparkSession, inputDir: String) {
 
   val dfMap = Map(
     "customer" -> spark.read.textFile(inputDir + "/customer.tbl*").map(_.split('|')).map(p =>
-      Customer(p(0).trim.toLong, p(1).trim, p(2).trim, p(3).trim.toLong, p(4).trim, p(5).trim.toDouble, p(6).trim, p(7).trim)).toDF(),
+      Customer(p(0).trim.toLong, p(1).trim, p(2).trim, p(3).trim.toLong, p(4).trim, p(5).trim.toDouble, p(6).trim, p(7).trim, p(8).trim)).toDF(),
 
     "lineitem" -> spark.read.textFile(inputDir + "/lineitem.tbl*").map(_.split('|')).map(p =>
-      Lineitem(p(0).trim.toLong, p(1).trim.toLong, p(2).trim.toLong, p(3).trim.toLong, p(4).trim.toDouble, p(5).trim.toDouble, p(6).trim.toDouble, p(7).trim.toDouble, p(8).trim, p(9).trim, p(10).trim, p(11).trim, p(12).trim, p(13).trim, p(14).trim, p(15).trim)).toDF(),
+      Lineitem(p(0).trim.toLong, p(1).trim.toLong, p(2).trim.toLong, p(3).trim.toLong, p(4).trim.toDouble, p(5).trim, p(6).trim.toDouble, p(7).trim, p(8).trim.toDouble, p(9).trim, p(10).trim.toDouble, p(11).trim, p(12).trim, p(13).trim, p(14).trim, p(15).trim, p(16).trim, p(17).trim, p(18).trim, p(19).trim)).toDF(),
 
     "nation" -> spark.read.textFile(inputDir + "/nation.tbl*").map(_.split('|')).map(p =>
       Nation(p(0).trim.toLong, p(1).trim, p(2).trim.toLong, p(3).trim)).toDF(),
@@ -97,16 +107,16 @@ class TpchSchemaProvider(spark: SparkSession, inputDir: String) {
       Region(p(0).trim.toLong, p(1).trim, p(2).trim)).toDF(),
 
     "order" -> spark.read.textFile(inputDir + "/orders.tbl*").map(_.split('|')).map(p =>
-      Order(p(0).trim.toLong, p(1).trim.toLong, p(2).trim, p(3).trim.toDouble, p(4).trim, p(5).trim, p(6).trim, p(7).trim.toLong, p(8).trim)).toDF(),
+      Order(p(0).trim.toLong, p(1).trim.toLong, p(2).trim, p(3).trim.toDouble, p(4).trim, p(5).trim, p(6).trim, p(7).trim, p(8).trim.toLong, p(9).trim)).toDF(),
 
     "part" -> spark.read.textFile(inputDir + "/part.tbl*").map(_.split('|')).map(p =>
-      Part(p(0).trim.toLong, p(1).trim, p(2).trim, p(3).trim, p(4).trim, p(5).trim.toLong, p(6).trim, p(7).trim.toDouble, p(8).trim)).toDF(),
+      Part(p(0).trim.toLong, p(1).trim, p(2).trim, p(3).trim, p(4).trim, p(5).trim.toLong, p(6).trim, p(7).trim.toDouble, p(8).trim, p(9).trim)).toDF(),
 
     "partsupp" -> spark.read.textFile(inputDir + "/partsupp.tbl*").map(_.split('|')).map(p =>
-      Partsupp(p(0).trim.toLong, p(1).trim.toLong, p(2).trim.toLong, p(3).trim.toDouble, p(4).trim)).toDF(),
+      Partsupp(p(0).trim.toLong, p(1).trim.toLong, p(2).trim.toLong, p(3).trim, p(4).trim.toDouble, p(5).trim, p(6).trim)).toDF(),
 
     "supplier" -> spark.read.textFile(inputDir + "/supplier.tbl*").map(_.split('|')).map(p =>
-      Supplier(p(0).trim.toLong, p(1).trim, p(2).trim, p(3).trim.toLong, p(4).trim, p(5).trim.toDouble, p(6).trim)).toDF()
+      Supplier(p(0).trim.toLong, p(1).trim, p(2).trim, p(3).trim.toLong, p(4).trim, p(5).trim.toDouble, p(6).trim, p(7).trim)).toDF()
   )
 
   // for implicits

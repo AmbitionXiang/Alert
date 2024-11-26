@@ -5,7 +5,7 @@ import org.apache.spark.sql.functions._
 
 class Q16 extends TpchQuery {
 
-  override def execute(spark: SparkSession, schemaProvider: TpchSchemaProvider): DataFrame = {
+  override def execute(spark: SparkSession, schemaProvider: TpchSchemaProvider): Seq[DataFrame] = {
     import spark.implicits._
     import schemaProvider._
 
@@ -18,14 +18,14 @@ class Q16 extends TpchQuery {
       numbers($"p_size"))
       .select($"p_partkey", $"p_brand", $"p_type", $"p_size")
 
-    supplier.filter(!complains($"s_comment"))
+    Seq(supplier.filter(!complains($"s_comment"))
       // .select($"s_suppkey")
       .join(partsupp, $"s_suppkey" === partsupp("ps_suppkey"))
       .select($"ps_partkey", $"ps_suppkey")
       .join(fparts, $"ps_partkey" === fparts("p_partkey"))
       .groupBy($"p_brand", $"p_type", $"p_size")
       .agg(countDistinct($"ps_suppkey").as("supplier_count"))
-      .sort($"supplier_count".desc, $"p_brand", $"p_type", $"p_size")
+      .sort($"supplier_count".desc, $"p_brand", $"p_type", $"p_size"))
   }
 
 }
