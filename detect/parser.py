@@ -89,7 +89,7 @@ class Parser:
     def __init__(self, output_dir: str = r"/../dbgen/output") -> None:
         self.output_dir = output_dir
         self.max_abs_err = 0.0
-        self.func_buffer = []
+        self.func_buffer = set()
 
     def collect_funcs(self,
                       file_path: str = r"/../dbgen/output/Q03-0/part-00000-92e37250-26b9-4ff6-83c0-d95cc2d4214c-c000.csv"):
@@ -100,8 +100,8 @@ class Parser:
                 for item in items:
                     if count >= 200:
                         break
-                    if var_ptn.search(item):
-                        self.func_buffer.append(item)
+                    if var_ptn.search(item) and item not in self.func_buffer:
+                        self.func_buffer.add(item)
                         count += 1
         return count
 

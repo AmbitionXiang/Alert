@@ -10,10 +10,10 @@ class Q14 extends TpchQuery {
     import schemaProvider._
 
     val reduce = udf { (x: Double, y: Double) => x * (1 - y) }
-    val reduceString = udf { (x: String, y: String) => s"($x)*(1-($y))"}
+    val reduceString = udf { (x: String, y: String) => s"(($x)*(1-($y)))"}
     val promo = udf { (x: String, y: Double) => if (x.startsWith("PROMO")) y else 0 }
     val promoString = udf { (x: String, y: String) => if (x.startsWith("PROMO")) y else "0" }
-    val mul100divString = udf { (x: String, y: String) => s"(($x)*100)/($y)"}
+    val mul100divString = udf { (x: String, y: String) => s"[$x]*100/[$y]"}
 
     Seq(part.join(lineitem, $"l_partkey" === $"p_partkey" &&
       $"l_shipdate" >= "1995-09-01" && $"l_shipdate" < "1995-10-01")

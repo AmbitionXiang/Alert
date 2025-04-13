@@ -28,7 +28,7 @@ class Loader:
     Build variable table and load initial data of sensitive data from .tbl
     """
     def __init__(self, dbgen_dir: str = None) -> None:
-        self.dbgen_dir = dbgen_dir or r"/../dbgen"
+        self.dbgen_dir = dbgen_dir or r"../dbgen"
 
     def load_init_data(self, vars: Variables) -> None:
         for file_path in glob.glob(os.path.join(self.dbgen_dir, "*.tbl")):

@@ -10,7 +10,7 @@ class Q05 extends TpchQuery {
     import schemaProvider._
 
     val decrease = udf { (x: Double, y: Double) => x * (1 - y) }
-    val decreaseString = udf { (x: String, y: String) => s"($x)*(1-($y))" }
+    val decreaseString = udf { (x: String, y: String) => s"(($x)*(1-($y)))" }
 
     val forders = order.filter($"o_orderdate" < "1995-01-01" && $"o_orderdate" >= "1994-01-01")
 
@@ -23,7 +23,7 @@ class Q05 extends TpchQuery {
       .join(customer, $"o_custkey" === customer("c_custkey") && $"s_nationkey" === customer("c_nationkey"))
       .select($"n_name", decrease($"l_extendedprice", $"l_discount").as("value"), decreaseString($"l_extendedprice_var", $"l_discount_var").as("value_var"))
       .groupBy($"n_name")
-      .agg(sum($"value").as("revenue"), concat_ws("+", collect_list($"value_var")))
+      .agg(sum($"value").as("revenue"), concat(lit("["), concat_ws("+", collect_list($"value_var")), lit("]")))
       .sort($"revenue".desc))
   }
 

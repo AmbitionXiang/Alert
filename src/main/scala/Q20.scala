@@ -10,7 +10,7 @@ class Q20 extends TpchQuery {
     import schemaProvider._
 
     val forest = udf { (x: String) => x.startsWith("forest") }
-    val mul05 = udf { (x: String) => s"($x)*0.5" }
+    val mul05 = udf { (x: String) => s"[$x]*0.5" }
 
     val flineitem = lineitem.filter($"l_shipdate" >= "1994-01-01" && $"l_shipdate" < "1995-01-01")
       .groupBy($"l_partkey", $"l_suppkey")

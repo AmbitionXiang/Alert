@@ -162,7 +162,7 @@ int pr_cust(customer_t *c, int mode) {
     PR_MONEY(fp, &c->acctbal);
     // insert variable
     char str[16];
-    sprintf(str, "x5_%u", c->custkey);
+    sprintf(str, "(x5_%u)", c->custkey);
     PR_STR(fp, str, 16);
     // finish insertion
     PR_STR(fp, c->mktsegment, C_MSEG_LEN);
@@ -192,7 +192,7 @@ int pr_order(order_t *o, int mode) {
     PR_MONEY(fp_o, &o->totalprice);
     // insert variable
     char str[16];
-    sprintf(str, "x6_%u", o->okey);
+    sprintf(str, "(x6_%u)", o->okey);
     PR_STR(fp_o, str, 16);
     // finish insertion
     PR_STR(fp_o, o->odate, DATE_LEN);
@@ -229,12 +229,12 @@ int pr_line(order_t *o, int mode) {
         PR_HUGE(fp_l, &o->l[i].quantity);
         // insert variable
         char str[16];
-        sprintf(str, "x7_%u", o->l[i].okey * O_LCNT_MAX + i);
+        sprintf(str, "(x7_%u)", o->l[i].okey * O_LCNT_MAX + i);
         PR_STR(fp_l, str, 16);
         // finish insertion
         PR_MONEY(fp_l, &o->l[i].eprice);
         // insert variable
-        sprintf(str, "x8_%u", o->l[i].okey * O_LCNT_MAX + i);
+        sprintf(str, "(x8_%u)", o->l[i].okey * O_LCNT_MAX + i);
         PR_STR(fp_l, str, 16);
         // finish insertion
 
@@ -244,12 +244,12 @@ int pr_line(order_t *o, int mode) {
 
         PR_MONEY(fp_l, &o->l[i].discount);
         // insert variable
-        sprintf(str, "x9_%u", o->l[i].okey * O_LCNT_MAX + i);
+        sprintf(str, "(x9_%u)", o->l[i].okey * O_LCNT_MAX + i);
         PR_STR(fp_l, str, 16);
         // finish insertion
         PR_MONEY(fp_l, &o->l[i].tax);
         // insert variable
-        sprintf(str, "x10_%u", o->l[i].okey * O_LCNT_MAX + i);
+        sprintf(str, "(x10_%u)", o->l[i].okey * O_LCNT_MAX + i);
         PR_STR(fp_l, str, 16);
         // finish insertion
 
@@ -298,7 +298,7 @@ int pr_part(part_t *part, int mode) {
     PR_MONEY(p_fp, &part->retailprice);
     // insert variable
     char str[16];
-    sprintf(str, "x1_%u", part->partkey);
+    sprintf(str, "(x1_%u)", part->partkey);
     PR_STR(p_fp, str, 16);
     // finish insertion
     PR_VSTR_LAST(p_fp, part->comment, part->clen);
@@ -324,12 +324,12 @@ int pr_psupp(part_t *part, int mode) {
         PR_HUGE(ps_fp, &part->s[i].qty);
         // insert variable
         char str[16];
-        sprintf(str, "x3_%u", part->s[i].partkey * SUPP_PER_PART + i);
+        sprintf(str, "(x3_%u)", part->s[i].partkey * SUPP_PER_PART + i);
         PR_STR(ps_fp, str, 16);
         // finish insertion
         PR_MONEY(ps_fp, &part->s[i].scost);
         // insert variable
-        sprintf(str, "x4_%u", part->s[i].partkey * SUPP_PER_PART + i);
+        sprintf(str, "(x4_%u)", part->s[i].partkey * SUPP_PER_PART + i);
         PR_STR(ps_fp, str, 16);
         // finish insertion
         PR_VSTR_LAST(ps_fp, part->s[i].comment, part->s[i].clen);
@@ -365,7 +365,7 @@ int pr_supp(supplier_t *supp, int mode) {
     PR_MONEY(fp, &supp->acctbal);
     // insert variable
     char str[16];
-    sprintf(str, "x2_%u", supp->suppkey);
+    sprintf(str, "(x2_%u)", supp->suppkey);
     PR_STR(fp, str, 16);
     // finish insertion
     PR_VSTR_LAST(fp, supp->comment, supp->clen);

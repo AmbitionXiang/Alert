@@ -1,3 +1,4 @@
+from collections import deque
 import os, glob, json
 from datetime import datetime
 import torch
@@ -5,12 +6,54 @@ import torch
 from checker import StrictChecker
 from loader import Variables, Loader
 from parser import Parser, Function
+from poly_parser import PolynomialParser
+from sym_merger import is_poly_symmetric, merge_symmetry, poly_sys_symmetry
 from utils import Timer, var_ptn
 
 leakage_found: bool = False
 
-def check(vars: Variables, func_buffer: list[str], files: list[str], logs):
-    print(f"checking: files={files}, numFuncs={len(func_buffer)}")
+def check_int(func_buffer: list[str], files: list[str], logs):
+    print(f"checking int: files={files}, numFuncs={len(func_buffer)}")
+    log_item = {"files": files, "numFuncs": len(func_buffer)}
+    timer = Timer()
+    timer.start()
+    isleak = False
+
+    symmetry_q = deque()
+    all_vars_q = deque()
+    for func_i, poly in enumerate(func_buffer):
+        parser = PolynomialParser()
+        print("func_i = ", func_i)
+        root = parser.parse(poly)
+        # parser.print_structure(root)
+        symmetry, symmetry_to_expand = parser.gen_poly_sym_all(root)
+        if not is_poly_symmetric(symmetry, parser.all_vars):
+            print("single poly leaks, symmetry = ", symmetry, ", all vars = ", parser.all_vars)
+            isleak = True
+            # break
+        else:
+            print("single poly does not leak")
+        symmetry_q.append(symmetry)
+        all_vars_q.append(parser.all_vars)
+    
+    # if len(symmetry_q) > 1 and isleak == False:
+    if len(symmetry_q) > 1:
+        final_symmetry, isleak = poly_sys_symmetry(symmetry_q, all_vars_q)
+    
+    if isleak:
+        global leakage_found
+        leakage_found = True
+
+    time = timer.end()
+    log_item["isleak"] = isleak
+    log_item["SymmetryCheckTime"] = time
+    logs["checkResults"].append(log_item)
+    print(f"symmetry check finished, time={time}")
+
+    timer.restart()
+
+def check_real(vars: Variables, func_buffer: list[str], files: list[str], logs):
+    print(f"checking real: files={files}, numFuncs={len(func_buffer)}")
     log_item = {"files": files, "numFuncs": len(func_buffer)}
     timer = Timer()
     timer.start()
@@ -69,14 +112,15 @@ def main():
     time = timer.end()
     print(f"load initial value: Done, elapsed time: {time} s")
 
-    output_path = r"/../dbgen/output"
+    output_path = r"../dbgen/output"
     parser = Parser(output_path)
 
     log_name = datetime.now().strftime("log-%m-%d-%H-%M-%S")+".json"
     logs = {"inputs": [], "checkResults": []}
     file_list = []
     global leakage_found
-    for i in range(1, 23):
+    # for i in range(1, 23):
+    for i in range(2, 23): # 1 (too long), 9,19,20 (leakage, may not leak when data become more)
         for file_path in glob.glob(os.path.join(output_path, "Q%02d-*/part-*.csv" % i)):
             file_name = os.path.join(*file_path.split('/')[-2:])
             print(f"parsing functions in {file_name}")
@@ -94,20 +138,13 @@ def main():
             #     json.dump(logs, open(log_name, "w"))
             #     file_list = []
         # per query
-        check(vars, parser.func_buffer, file_list, logs)
+        # check_real(vars, parser.func_buffer, file_list, logs)
+        check_int(parser.func_buffer, file_list, logs)
         parser.func_buffer.clear()
         json.dump(logs, open(log_name, "w"))
         file_list = []
-        print("---------------------------------------------v")
-        print(f"summering of Q1 ~ Q{i}:")
-        print(f"\nparser max absolute error: {parser.max_abs_err}")
-        print(f"\nLeakage Found: {leakage_found}")
-        print("log:")
-        print(logs)
-        print("---------------------------------------------^")
-        json.dump(logs, open(log_name, "w"))
     if file_list:
-        check(vars, parser.func_buffer, file_list, logs)
+        check_real(vars, parser.func_buffer, file_list, logs)
         parser.func_buffer.clear()
         print("---------------------------------------------v")
         print(f"summering after last small queries:")

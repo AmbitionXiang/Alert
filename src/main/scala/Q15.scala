@@ -10,13 +10,13 @@ class Q15 extends TpchQuery {
     import schemaProvider._
 
     val decrease = udf { (x: Double, y: Double) => x * (1 - y) }
-    val decreaseString = udf { (x: String, y: String) => s"($x)*(1-($y))" }
+    val decreaseString = udf { (x: String, y: String) => s"(($x)*(1-($y)))" }
 
     val revenue = lineitem.filter($"l_shipdate" >= "1996-01-01" &&
       $"l_shipdate" < "1996-04-01")
       .select($"l_suppkey", decrease($"l_extendedprice", $"l_discount").as("value"), decreaseString($"l_extendedprice_var", $"l_discount_var").as("value_var"))
       .groupBy($"l_suppkey")
-      .agg(sum($"value").as("total"), concat_ws("+", collect_list($"value_var")).as("total_var"))
+      .agg(sum($"value").as("total"), concat(lit("["), concat_ws("+", collect_list($"value_var")), lit("]")).as("total_var"))
     // .cache
 
     Seq(revenue.agg(max($"total").as("max_total"))

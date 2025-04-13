@@ -10,7 +10,7 @@ class Q10 extends TpchQuery {
     import schemaProvider._
 
     val decrease = udf { (x: Double, y: Double) => x * (1 - y) }
-    val decreaseString = udf { (x: String, y: String) => s"($x)*(1-($y))" }
+    val decreaseString = udf { (x: String, y: String) => s"(($x)*(1-($y)))" }
 
     val flineitem = lineitem.filter($"l_returnflag" === "R")
 
@@ -22,7 +22,7 @@ class Q10 extends TpchQuery {
         decrease($"l_extendedprice", $"l_discount").as("volume"), decreaseString($"l_extendedprice_var", $"l_discount_var").as("volume_var"), 
         $"n_name", $"c_address", $"c_phone", $"c_comment")  // remove c_acctbal
       .groupBy($"c_custkey", $"c_name", $"c_phone", $"n_name", $"c_address", $"c_comment")
-      .agg(sum($"volume").as("revenue"), concat_ws("+", collect_list($"volume_var")).as("revenue_var"))
+      .agg(sum($"volume").as("revenue"), concat(lit("["), concat_ws("+", collect_list($"volume_var")).as("revenue_var"), lit("]")))
       .sort($"revenue".desc)
       .limit(20))
   }

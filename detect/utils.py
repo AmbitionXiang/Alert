@@ -14,5 +14,5 @@ class Timer:
         self.t = time.time()
         self.active = True
 
-var_ptn = re.compile(r'x(\d+)_(\d+)')
+var_ptn = re.compile(r'x(\d*)_(\d+)')
 num_ptn = re.compile(r'\d+\.\d*|\d*\.\d+|\d+')
