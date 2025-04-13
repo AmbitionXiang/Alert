@@ -7,7 +7,7 @@ from collections import deque
 from find_sym import build_expression_tree, gen_expr_sym_all, generate_ordered_pairs, multi_list_cartesian, SymbolNode 
 
 def replace_underscores(s, cnt):
-    """将字符串中的下划线按顺序替换为 x_1, x_2,... 并返回结果和下划线数量"""
+    """Replace underscores in the string with \( x_1, x_2, \ldots \) in order, and return the result and the number of underscores."""
     counter = cnt
     
     def replacer(match):
@@ -15,25 +15,20 @@ def replace_underscores(s, cnt):
         counter += 1
         return f"x_{counter}"
     
-    # 执行替换并自动计数
     new_str = re.sub(r'_', replacer, s)
     return new_str, counter
 
 def generate_all_subsets(tuples_list):
-    """生成元组列表的所有子集（列表形式）"""
     subsets = set()
     n = len(tuples_list)
     for k in range(n + 1):
-        # 生成所有 k 个元素的组合（返回元组）
         for combo in itertools.combinations(tuples_list, k):
-            subsets.add(set(combo))  # 转换为列表
+            subsets.add(set(combo))
     return subsets
 
 def remove_elements_inplace(lst, indices):
-    """原地删除列表中指定索引的元素"""
-    # 去重并降序排序索引
     for idx in sorted(set(indices), reverse=True):
-        if idx < len(lst):  # 防止索引越界
+        if idx < len(lst):
             del lst[idx]
     return lst
 
@@ -45,23 +40,22 @@ def find_in_nested_list(var_idx_groups, var_idx_target):
 
 class DSU:
     def __init__(self):
-        self.parent = {}  # 存储每个节点的父节点
-        self.rank = {}    # 存储节点的秩（树的深度）
+        self.parent = {}  # Store the parent node of each node.
+        self.rank = {}    # Store the rank (depth of the tree) of each node.
 
     def find(self, x):
-        # 查找根节点，并进行路径压缩
+        # Find the root node and perform path compression.
         if self.parent[x] != x:
-            self.parent[x] = self.find(self.parent[x])  # 路径压缩
+            self.parent[x] = self.find(self.parent[x])  # Path compression
         return self.parent[x]
 
     def union(self, x, y):
-        # 合并两个集合
         x_root = self.find(x)
         y_root = self.find(y)
         if x_root == y_root:
-            return  # 已经在同一个集合中
+            return  # Already in the same set.
         
-        # 按秩合并
+        # Merge by rank.
         if self.rank[x_root] < self.rank[y_root]:
             self.parent[x_root] = y_root
         else:
@@ -70,7 +64,7 @@ class DSU:
                 self.rank[x_root] += 1
 
     def add(self, x):
-        # 添加新元素到并查集
+        # Add a new element to the disjoint-set.
         if x not in self.parent:
             self.parent[x] = x
             self.rank[x] = 1
@@ -182,14 +176,14 @@ class PolynomialParser:
   
                     cur.expr_node = SymbolNode()
                     cur.expr_node.symbol = 'R'
-                    cur.expr_node.level = -1 # cur没有children，但可以通过len(vars)来获取有多少个expr子节点
+                    cur.expr_node.level = -1 # cur has no children, it gets how many expr node by len(vars)
                     first_expr, first_cnt = replace_underscores(list(cur.expressions.keys())[0], 0)
                     first_repre_node = build_expression_tree(first_expr)
                     if len(cur.vars) == 1:
                         cur.expr_node = first_repre_node
                     else:
                         second_repre_node = build_expression_tree(replace_underscores(list(cur.expressions.keys())[0], first_cnt)[0])
-                        cur.expr_node.children = [first_repre_node, second_repre_node] # 不止2个node，但是为了方便赋值变量并复用对称性输出结果，暂时这样处理
+                        cur.expr_node.children = [first_repre_node, second_repre_node] # not only 2 nodes, but do that for convenience, and the variables can be replaced to generate other symmetry
                         if len(first_repre_node.children) == 0:
                             cur.expr_node.direct_symmetry = set([child.symbol for child in cur.expr_node.children])
                         elif first_repre_node.symbol == 'Pow':
@@ -199,9 +193,9 @@ class PolynomialParser:
                             id = (first_repre_node.symbol, len(first_repre_node.direct_symmetry), frozenset([(key, len(value)) for key, value in first_repre_node.pow_symmetry.items()]), first_repre_node.com_symmetry)
                             cur.expr_node.com_symmetry = frozendict.frozendict({id: frozenset({0, 1})})
 
-                elif len(cur.expressions) > 1: # TODO: 如果expression不唯一怎么办？union操作可能会引入这种情况
+                elif len(cur.expressions) > 1: # TODO: If the expression is not unique, what should we do? The union operation may introduce such a situation.
                     None
-                else: # TODO: 如果父节点有自己的expression怎么办？union操作可能引入这种情况
+                else: # TODO: If the parent node has its own expression, what should we do? This situation may be introduced by the union operation.
                     cur.expr_range[1] = cur.children[-1].expr_range[1]
                     
                     com_dict = {}
@@ -216,7 +210,7 @@ class PolynomialParser:
                     cur.child_symmetry = frozendict.frozendict({key: frozenset(value) for key, value in com_dict.items()})
                 if not cur.parent:
                     root = cur
-            # reduceByKey之后不会有map，这一点保证了()中不会出现[]
+            # After reduceByKey, there will be no map operation, which ensures that () will not contain []
             elif poly_str[i] == '(':
                 if num_left_parenthese == 0:
                     idx_left_parenthese = i
@@ -224,10 +218,10 @@ class PolynomialParser:
             elif poly_str[i] == ')':
                 num_left_parenthese -= 1
                 if num_left_parenthese == 0 and idx_left_parenthese != -1 and len(stack) > 0:
-                    # 提取完整表达式
+                    # Extract the complete expression.
                     expr = poly_str[idx_left_parenthese+1:i]
                     vars = self.var_pattern.findall(expr)
-                    # 去掉变量
+                    # Remove the variable symbols.
                     expr = self.var_pattern.sub('_', expr)
                     stack_var_idx = len(stack[-1].vars)
                     stack_var_set = stack[-1].expressions.get(expr)
@@ -244,7 +238,7 @@ class PolynomialParser:
     def gen_poly_sym(self, root):
         symmetry = []
         symmetry_to_expand = []
-        # 先生成可直接生成的对换表示
+        # First, generate the transpositions that can be directly generated.
         if len(root.expressions) == 1:
             print("print last-level symmetry")
             if len(root.join_groups) == len(root.vars):
@@ -257,7 +251,7 @@ class PolynomialParser:
                 for t in itertools.combinations(root.vars, 2):
                     var_dict = {f"x_{i+1}": var for i, var in enumerate(list(t[0]) + list(t[1]))}                
                     symmetry.extend([[tuple(sorted([var_dict[cur_tuple[0]], var_dict[cur_tuple[1]]])) for cur_tuple in chained_tuples] for chained_tuples in symmetry_tmp])
-            else: # TODO: 有join group如何处理
+            else: # TODO: what about join group
                 print("has join group: ")
                 symmetry_expr_node_placeholder = [[tuple([int(re.fullmatch(r'^x_(\d+)$', symbol).group(1)) - 1
  for symbol in cur_tuple]) for cur_tuple in chained_tuples] for chained_tuples in gen_expr_sym_all(root.expr_node.children[0])]
@@ -290,19 +284,19 @@ class PolynomialParser:
                 companion_idx_to_var_idx_group = {i: indice for i, indice in enumerate(companion_dict_values)}
                 for join_group in root.join_groups:
                     for (companion_chained_tuples, companion_idx, companion_set) in zip(in_comp_chained_tuples_placeholder, root.companion_dict.values(), join_group):
-                        for companion in companion_set:  # 同一个join group内同一个companion_set内同一个tuple内互换
+                        for companion in companion_set:  # Within the same join group, the same companion set, and the same tuple, perform the interchange.
                             symbol_dict =  {symbol_idx: symbol for symbol_idx, symbol in zip(companion_idx, companion)}
                             symmetry.extend([[tuple(sorted([symbol_dict[symbol_idx] for symbol_idx in cur_tuple])) for cur_tuple in chained_tuples] for chained_tuples in companion_chained_tuples])
                     # print("for join group = ", join_group, ", before companion exchange, current symmetry = ", symmetry)    
                     
                     if not has_non_join_column:
-                        for companion_set in join_group:  # 同一个join group内同一个companion_set内互换
+                        for companion_set in join_group:  # Within the same join group and the same companion set, perform the interchange.
                             for t in itertools.combinations(companion_set, 2):
-                                symmetry.append([tuple(sorted(cur_tuple)) for cur_tuple in list(zip(*t))]) # 这里省略了部分排列带来的对称性，有待研究
+                                symmetry.append([tuple(sorted(cur_tuple)) for cur_tuple in list(zip(*t))]) # Here, some symmetries arising from partial permutations are omitted and require further investigation.
                         # print("for join group = ", join_group, ", before companion set exchange, current symmetry = ", symmetry) 
 
                         join_group_size = [(len(s), len(list(s)[0])) for s in join_group]
-                        for chained_tuples in symmetry_expr_node_placeholder: # 同一个join group内不同companion set互换
+                        for chained_tuples in symmetry_expr_node_placeholder: # Perform interchanges between different companion sets within the same join group.
                             # print("chained_tuples = ", chained_tuples)
                             bind_dict = {}
                             is_comp_consist = True                          
@@ -357,7 +351,7 @@ class PolynomialParser:
 
                 # print("before inter-join-group symmetrym, cur symmetry = ", symmetry)
 
-                # inter-join-group symmetry，这里只产生一部分对称性结果
+                # inter-join-group symmetry. Here, only a subset of the symmetry results is generated.
                 join_groups_size = {}
                 for join_group_idx, join_group in enumerate(root.join_groups):
                     jgidx = tuple([(len(s), len(list(s)[0])) for s in join_group])
@@ -418,7 +412,7 @@ class PolynomialParser:
                         new_chained_tuples.append(multi_list_cartesian(to_be_producted))
                     current_level_symmetry.extend(multi_list_cartesian(new_chained_tuples))
 
-                queue.extend(current_level_symmetry)  # 直接添加所有子节点
+                queue.extend(current_level_symmetry)  # Directly add all child nodes without expansion.
             symmetry_to_expand.extend(queue)
 
         return symmetry, symmetry_to_expand
@@ -439,7 +433,6 @@ class PolynomialParser:
         return result, result_to_expand
     
     def print_structure(self, node, indent=0):
-        """打印树结构用于调试"""
         print('  ' * indent + f'Level {node.level}:')
         if node.expressions:
             print('  ' * (indent+1) + 'Exprs:', node.expressions)
@@ -456,7 +449,7 @@ class PolynomialParser:
 
 
 if __name__ == "__main__":
-    # 测试用例
+    # test case
     parser = PolynomialParser()
     # test_case = "[[[(x_1)+(x_2)]+[(x_3)+(x_4)]]+[[(x_5)+(x_6)]+[(x_7)+(x_8)]]+[[(x_9)+(x_10)]+[(x_11)+(x_12)]]]"
     # test_case = "[[((x_1+y_1)*z_1)+((x_1+y_1)*z_2)+((x_2+y_2)*z_1)+((x_2+y_2)*z_2)]+[((x_3+y_3)*z_3)+((x_4+y_4)*z_4)]]"

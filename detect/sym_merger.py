@@ -13,7 +13,7 @@ def is_chained_tuples_shared(symmetry, chained_tuples, peer_chained_tuples, all_
     symmetry = [s for s in symmetry if len(s) <= len(chain_diff)]
     chain_diff_possible_subset = [chain_diff_possible_subset for chain_diff_possible_subset in symmetry if chain_diff_possible_subset.issubset(chain_diff)]
     # print("chain_diff = ", chain_diff, ", chain_diff_possible_subset = ", chain_diff_possible_subset)
-    if len(chain_diff_possible_subset) == 0:  # 子集寻找结束，剩下的必须是未包含的变量
+    if len(chain_diff_possible_subset) == 0:  # The subset search is complete, and the remaining variables must be those that are disjointed.
         for tpl in chain_diff:
             if not set(tpl).issubset(all_vars_diff):
                 return False

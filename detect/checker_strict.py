@@ -46,7 +46,7 @@ for var_num in [10, 100, 1000, 3000, 10000, 30000, 100000, 300000, 1000000]:
     expression_str = " + ".join([
         f"{random.randint(*coeff_range)}*{var}**{random.randint(0, max_degree)}"
         for var in varstrs
-        for _ in range(random.randint(1, 3))  # 每个变量生成1到3项
+        for _ in range(random.randint(1, 3))  # Each variable generates 1 to 3 terms.
     ])
 
     start_time = time()

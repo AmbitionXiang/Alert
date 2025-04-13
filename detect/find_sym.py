@@ -15,17 +15,13 @@ class SymbolNode:
         self.level = 0
 
 def is_integer(s):
-    # 正则匹配：^表示开头，[-+]?表示可选符号，\d+表示至少一个数字，$表示结尾
     return re.fullmatch(r"^[-+]?\d+$", s) is not None
 
 def build_expression_tree(expr_str):
-    """将表达式字符串转换为层级树结构"""
     expr = sp.sympify(expr_str)
     root = SymbolNode()
 
     def traverse(node, depth, cur, parent):
-        """递归遍历表达式树并记录各层节点"""
-        # 确定节点符号
         if node.is_Add:
             symbol = '+'
         elif node.is_Mul:
@@ -37,9 +33,8 @@ def build_expression_tree(expr_str):
         elif node.is_Number:
             symbol = str(node)
         else:
-            symbol = str(node.func.__name__)  # 其他运算符取类名
+            symbol = str(node.func.__name__)
 
-        # 记录节点
         if node.is_Number:
             cur.symbol = ''
         else:
@@ -49,7 +44,7 @@ def build_expression_tree(expr_str):
             cur.parent = parent
             parent.children.append(cur)
 
-        # 递归处理子节点
+        # recursion
         for arg in node.args:
             traverse(arg, depth + 1, SymbolNode(), cur)
 
@@ -81,8 +76,8 @@ def build_expression_tree(expr_str):
     return root
 
 def generate_ordered_pairs(list_a, list_b):
-    """将两个等长列表的全排列组合成元组列表"""
-    assert len(list_a) == len(list_b), "输入的列表长度必须相等"
+    """Combine the full permutations of two equal-length lists into a list of tuples"""
+    assert len(list_a) == len(list_b), "The input lists must have equal lengths"
     
     result = []
     for p in itertools.permutations(list_b):
@@ -91,10 +86,10 @@ def generate_ordered_pairs(list_a, list_b):
     return result
 
 def multi_list_cartesian(lists):
-    """计算多个列表的笛卡尔积，合并子列表元素"""
-    # 生成所有可能的子列表组合
+    """Compute the Cartesian product of multiple lists and merge the elements of the sublists."""
+    # Generate all possible combinations of sublists.
     combinations = itertools.product(*lists)
-    # 合并每个组合中的子列表
+    # Merge the sublists within each combination.
     return [ 
         [item for sublist in combo for item in sublist]
         for combo in combinations
@@ -105,7 +100,7 @@ def gen_expr_sym(root):
     symmetry = []
     upper_level_symmetry = []
     
-    # 先生成可直接生成的对换表示
+    # First, generate the transpositions that can be directly produced.
     if len(root.direct_symmetry) > 1:
         symmetry.extend([[t] for t in itertools.combinations(root.direct_symmetry, 2)])
     for value in root.pow_symmetry.values():
@@ -153,7 +148,7 @@ def gen_expr_sym(root):
                     new_chained_tuples.append(multi_list_cartesian(to_be_producted)) # after cartestian: [[(x_{2,1}, x_{2,3}), （x_{2,2}, x_{2,4}）], [(x_{2,1}, x_{2,4}), （x_{2,2}, x_{2,3}）]]
             current_level_symmetry.extend(multi_list_cartesian(new_chained_tuples))
 
-        queue.extend(current_level_symmetry)  # 直接添加所有子节点
+        queue.extend(current_level_symmetry)
     symmetry.extend(queue)
     return symmetry
 
@@ -180,50 +175,50 @@ def level_order(root):
         for _ in range(level_size):
             node = queue.popleft()
             current_level.append(node.symbol)
-            queue.extend(node.children)  # 直接添加所有子节点
+            queue.extend(node.children)
         result.append(current_level)
     return result
 
 if __name__ == "__main__":
-    # 示例测试
+    # test case
     expr1 = "x_1+x_2*x_3"
-    print("表达式:", expr1)
+    print("expr:", expr1)
     root = build_expression_tree(expr1)
     print(level_order(root))
     print(gen_expr_sym_all(root))
 
     expr2 = "(x_11 * x_12 * x_13 + x_21 * x_22 * x_23) * (x_31 * x_32 * x_33 + x_41 * x_42 * x_43) * (x_51 * x_52 * x_53 + x_61 * x_62 * x_63)"
-    print("\n表达式:", expr2)
+    print("\n expr:", expr2)
     root = build_expression_tree(expr2)
     print(level_order(root))
     print(gen_expr_sym_all(root))
 
     expr3 = "x + (y + z) + a * b * c + d * e * f"
-    print("\n表达式:", expr3)
+    print("\n expr:", expr3)
     root = build_expression_tree(expr3)
     print(level_order(root))
     print(gen_expr_sym_all(root))
 
     expr4 = "x^2 + (y^3 + z^3)"
-    print("\n表达式:", expr4)
+    print("\n expr:", expr4)
     root = build_expression_tree(expr4)
     print(level_order(root))
     print(gen_expr_sym_all(root))
 
     expr5 = "(x + ((y * z) * w))"
-    print("\n表达式:", expr5)
+    print("\n expr:", expr5)
     root = build_expression_tree(expr5)
     print(level_order(root))
     print(gen_expr_sym_all(root))
 
     expr6 = "(x * (1 - y))"
-    print("\n表达式:", expr6)
+    print("\n expr:", expr6)
     root = build_expression_tree(expr6)
     print(level_order(root))
     print(gen_expr_sym_all(root))
 
     expr6 = "(((x_1))*(1-((x_2)))-((x_3))*((x_4)))"
-    print("\n表达式:", expr6)
+    print("\n expr:", expr6)
     root = build_expression_tree(expr6)
     print(level_order(root))
     print(gen_expr_sym_all(root))
