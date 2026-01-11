@@ -8,11 +8,13 @@ from loader import Variables, Loader
 from parser import Parser, Function
 from poly_parser import PolynomialParser
 from sym_merger import is_poly_symmetric, merge_symmetry, poly_sys_symmetry
+from grobner import solve_equations_from_strings
+from variable_format import replace_variable_format
 from utils import Timer, var_ptn
 
 leakage_found: bool = False
 
-def check_int(func_buffer: list[str], files: list[str], logs):
+def check_int(func_buffer: dict[str, str], files: list[str], logs):
     print(f"checking int: files={files}, numFuncs={len(func_buffer)}")
     log_item = {"files": files, "numFuncs": len(func_buffer)}
     timer = Timer()
@@ -52,7 +54,7 @@ def check_int(func_buffer: list[str], files: list[str], logs):
 
     timer.restart()
 
-def check_real(vars: Variables, func_buffer: list[str], files: list[str], logs):
+def check_real(vars: Variables, func_buffer: dict[str, str], files: list[str], logs):
     print(f"checking real: files={files}, numFuncs={len(func_buffer)}")
     log_item = {"files": files, "numFuncs": len(func_buffer)}
     timer = Timer()
@@ -102,6 +104,17 @@ def check_real(vars: Variables, func_buffer: list[str], files: list[str], logs):
         global leakage_found
         leakage_found = True
 
+def check_int_groebner(func_buffer: dict[str, str], files: list[str], logs):
+    print(f"checking int: files={files}, numFuncs={len(func_buffer)}")
+    eqs = [replace_variable_format(func, 1000000) + "=" + res for func, res in func_buffer.items()]  
+    log_item = {"files": files, "numFuncs": len(eqs)}
+    timer = Timer()
+    timer.start()
+    solutions = solve_equations_from_strings(eqs)
+    time = timer.end()
+    log_item["Time"] = time
+    print(f"\nnumber of valid solutions: {len(solutions)}, time = {time}")
+
 def main():
     timer = Timer()
 
@@ -119,8 +132,8 @@ def main():
     logs = {"inputs": [], "checkResults": []}
     file_list = []
     global leakage_found
-    # for i in range(1, 23):
-    for i in range(2, 23): # 1 (too long), 9,19,20 (leakage, may not leak when data become more)
+    for i in range(1, 23):
+        print(f"processing query {i}")
         for file_path in glob.glob(os.path.join(output_path, "Q%02d-*/part-*.csv" % i)):
             file_name = os.path.join(*file_path.split('/')[-2:])
             print(f"parsing functions in {file_name}")
@@ -138,8 +151,9 @@ def main():
             #     json.dump(logs, open(log_name, "w"))
             #     file_list = []
         # per query
-        # check_real(vars, parser.func_buffer, file_list, logs)
-        check_int(parser.func_buffer, file_list, logs)
+        check_real(vars, parser.func_buffer, file_list, logs)
+        # check_int(parser.func_buffer, file_list, logs)
+        # check_int_groebner(parser.func_buffer, file_list, logs)
         parser.func_buffer.clear()
         json.dump(logs, open(log_name, "w"))
         file_list = []
