@@ -32,7 +32,6 @@ export PATH=$PATH:$HOME/spark/bin
 ### A. Get the code
 
 ```
-git clone https://github.com/ssavvides/tpch-spark
 cd tpch-spark
 ```
 
@@ -141,11 +140,8 @@ export TPCH_QUERY_OUTPUT_DIR="$HOME/tpch-results"
 export TPCH_EXECUTION_TIMES="$HOME/tpch-times.txt"
 ```
 
----
+### E. Detect the leakage
 
+In `main.py`, you can choose the method to run. For example, `check_real` implements Alert check method for real domains.
 
-## Other Implementations
-
-1. Data generator (http://www.tpc.org/tpch/)
-2. TPC-H for Hive (https://issues.apache.org/jira/browse/hive-600)
-3. TPC-H for PIG (https://github.com/ssavvides/tpch-pig)
+Run `benchmark.py` and `grad_parall.py` to randomly generate equations, solved with Alert and GD, respectively. 
