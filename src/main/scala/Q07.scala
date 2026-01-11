@@ -10,8 +10,8 @@ class Q07 extends TpchQuery {
     import schemaProvider._
 
     val getYear = udf { (x: String) => x.substring(0, 4) }
-    val decrease = udf { (x: Double, y: Double) => x * (1 - y) }
-    val decreaseString = udf { (x: String, y: String) => s"(($x)*(1-($y)))" }
+    val decrease = udf { (x: Double, y: Double) => x * (100 - y) }
+    val decreaseString = udf { (x: String, y: String) => s"(($x)*(100-($y)))" }
 
     // cache fnation
 
@@ -33,7 +33,7 @@ class Q07 extends TpchQuery {
         decrease($"l_extendedprice", $"l_discount").as("volume"),
         decreaseString($"l_extendedprice_var", $"l_discount_var").as("volume_var"))
       .groupBy($"supp_nation", $"cust_nation", $"l_year")
-      .agg(sum($"volume").as("revenue"), concat(lit("["), concat_ws("+", collect_list($"volume_var")), lit("]")))
+      .agg(sum($"volume").as("revenue"), concat(lit("("), concat_ws("+", collect_list($"volume_var")), lit(")")))
       .sort($"supp_nation", $"cust_nation", $"l_year"))
   }
 

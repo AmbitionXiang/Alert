@@ -21,9 +21,9 @@ class Q11 extends TpchQuery {
       .select($"ps_partkey", mul($"ps_supplycost", $"ps_availqty").as("value"), mulString($"ps_supplycost_var", $"ps_availqty_var").as("value_var"))
     // .cache()
 
-    val sumRes = tmp.agg(sum("value").as("total_value"), concat(lit("["), concat_ws("+", collect_list($"value_var")), lit("]")).as("total_value_var"))
+    val sumRes = tmp.agg(sum("value").as("total_value"), concat(lit("("), concat_ws("+", collect_list($"value_var")), lit(")")).as("total_value_var"))
 
-    Seq(tmp.groupBy($"ps_partkey").agg(sum("value").as("part_value"), concat(lit("["), concat_ws("+", collect_list($"value_var")), lit("]")).as("part_value_var"))
+    Seq(tmp.groupBy($"ps_partkey").agg(sum("value").as("part_value"), concat(lit("("), concat_ws("+", collect_list($"value_var")), lit(")")).as("part_value_var"))
       .join(sumRes, $"part_value" > mul01($"total_value"))
       .sort($"part_value".desc))
   }

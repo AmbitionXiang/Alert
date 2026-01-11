@@ -9,8 +9,8 @@ class Q03 extends TpchQuery {
     import spark.implicits._
     import schemaProvider._
 
-    val decrease = udf { (x: Double, y: Double) => x * (1 - y) }
-    val decreaseString = udf { (x: String, y: String) => s"(($x)*(1-($y)))" }
+    val decrease = udf { (x: Double, y: Double) => x * (100 - y) }
+    val decreaseString = udf { (x: String, y: String) => s"(($x)*(100-($y)))" }
 
     val fcust = customer.filter($"c_mktsegment" === "BUILDING")
     val forders = order.filter($"o_orderdate" < "1995-03-15")
@@ -24,7 +24,7 @@ class Q03 extends TpchQuery {
         decreaseString($"l_extendedprice_var", $"l_discount_var").as("volume_var"),
         $"o_orderdate", $"o_shippriority")
       .groupBy($"l_orderkey", $"o_orderdate", $"o_shippriority")
-      .agg(sum($"volume").as("revenue"), concat(lit("["), concat_ws("+", collect_list($"volume_var")), lit("]")))
+      .agg(sum($"volume").as("revenue"), concat(lit("("), concat_ws("+", collect_list($"volume_var")), lit(")")))
       .sort($"revenue".desc, $"o_orderdate")
       .limit(10))
   }

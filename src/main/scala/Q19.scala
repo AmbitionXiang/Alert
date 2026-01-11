@@ -13,8 +13,8 @@ class Q19 extends TpchQuery {
     val md = udf { (x: String) => x.matches("MED BAG|MED BOX|MED PKG|MED PACK") }
     val lg = udf { (x: String) => x.matches("LG CASE|LG BOX|LG PACK|LG PKG") }
 
-    val decrease = udf { (x: Double, y: Double) => x * (1 - y) }
-    val decreaseString = udf { (x: String, y: String) => s"(($x)*(1-($y)))" }
+    val decrease = udf { (x: Double, y: Double) => x * (100 - y) }
+    val decreaseString = udf { (x: String, y: String) => s"(($x)*(100-($y)))" }
 
     // project part and lineitem first?
     Seq(part.join(lineitem, $"l_partkey" === $"p_partkey")
@@ -34,7 +34,7 @@ class Q19 extends TpchQuery {
               $"l_quantity" >= 20 && $"l_quantity" <= 30 &&
               $"p_size" >= 1 && $"p_size" <= 15))
       .select(decrease($"l_extendedprice", $"l_discount").as("volume"), decreaseString($"l_extendedprice_var", $"l_discount_var").as("volume_var"))
-      .agg(sum("volume"), concat(lit("["), concat_ws("+", collect_list($"volume_var")), lit("]"))))
+      .agg(sum("volume"), concat(lit("("), concat_ws("+", collect_list($"volume_var")), lit(")"))))
   }
 
 }

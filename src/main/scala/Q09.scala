@@ -10,8 +10,8 @@ class Q09 extends TpchQuery {
     import schemaProvider._
 
     val getYear = udf { (x: String) => x.substring(0, 4) }
-    val expr = udf { (x: Double, y: Double, v: Double, w: Double) => x * (1 - y) - (v * w) }
-    val exprString =  udf { (x: String, y: String, v: String, w: String) => s"((($x)*(1-($y))-($v)*($w)))"}
+    val expr = udf { (x: Double, y: Double, v: Double, w: Double) => x * (100 - y) - (v * w) }
+    val exprString =  udf { (x: String, y: String, v: String, w: String) => s"((($x)*(100-($y))-($v)*($w)))"}
 
     val linePart = part.filter($"p_name".contains("green"))
       .join(lineitem, $"p_partkey" === lineitem("l_partkey"))
@@ -26,7 +26,7 @@ class Q09 extends TpchQuery {
         expr($"l_extendedprice", $"l_discount", $"ps_supplycost", $"l_quantity").as("amount"),
         exprString($"l_extendedprice_var", $"l_discount_var", $"ps_supplycost_var", $"l_quantity_var").as("amount_var"))
       .groupBy($"n_name", $"o_year")
-      .agg(sum($"amount"), concat(lit("["), concat_ws("+", collect_list($"amount_var")), lit("]")))
+      .agg(sum($"amount"), concat(lit("("), concat_ws("+", collect_list($"amount_var")), lit(")")))
       .sort($"n_name", $"o_year".desc))
 
   }

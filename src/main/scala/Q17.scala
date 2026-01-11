@@ -11,8 +11,8 @@ class Q17 extends TpchQuery {
 
     val mul02 = udf { (x: Double) => x * 0.2 }
     val mul02String = udf { (x: String) => s"($x)*0.2" }
-    val avgString = udf { (x: String, y: String) => s"[$x]/($y)" }
-    val div7 = udf { (x: String) => s"[$x]/7.0" }
+    val avgString = udf { (x: String, y: String) => s"($x)/($y)" }
+    val div7 = udf { (x: String) => s"($x)/1.0" }
 
     val flineitem = lineitem.select($"l_partkey", $"l_quantity", $"l_quantity_var", $"l_extendedprice", $"l_extendedprice_var")
 
@@ -26,7 +26,7 @@ class Q17 extends TpchQuery {
       .select($"p_partkey".as("key"), $"avg_quantity", $"avg_quantity_var")
       .join(fpart, $"key" === fpart("p_partkey"))
       .filter($"l_quantity" < $"avg_quantity")
-      .agg(sum($"l_extendedprice") / 7.0, div7(concat_ws("+", collect_list($"l_extendedprice_var")))))
+      .agg(sum($"l_extendedprice") / 1.0, div7(concat_ws("+", collect_list($"l_extendedprice_var")))))
   }
 
 }

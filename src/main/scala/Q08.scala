@@ -10,8 +10,8 @@ class Q08 extends TpchQuery {
     import schemaProvider._
 
     val getYear = udf { (x: String) => x.substring(0, 4) }
-    val decrease = udf { (x: Double, y: Double) => x * (1 - y) }
-    val decreaseString = udf { (x: String, y: String) => s"(($x)*(1-($y)))" }
+    val decrease = udf { (x: Double, y: Double) => x * (100 - y) }
+    val decreaseString = udf { (x: String, y: String) => s"(($x)*(100-($y)))" }
     val isBrazil = udf { (x: String, y: Double) => if (x == "BRAZIL") y else 0 }
     val isBrazilString = udf { (x: String, y: String) => if (x == "BRAZIL") y else "(0)" }
 
@@ -38,7 +38,9 @@ class Q08 extends TpchQuery {
         isBrazil($"n_name", $"volume").as("case_volume"),
         isBrazilString($"n_name", $"volume_var").as("case_volume_var"))
       .groupBy($"o_year")
-      .agg(sum($"case_volume") / sum("volume"),  concat(lit("["), concat_ws("+", collect_list($"case_volume_var")), lit("]/["), concat_ws("+", collect_list($"volume_var")), lit("]")))
+      .agg(sum($"case_volume"), concat(lit("("), concat_ws("+", collect_list($"case_volume_var")), lit(")")),
+        sum("volume"), concat(lit("("), concat_ws("+", collect_list($"volume_var")), lit(")"))
+      )
       .sort($"o_year"))
   }
 

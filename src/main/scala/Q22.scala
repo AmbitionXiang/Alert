@@ -27,7 +27,7 @@ class Q22 extends TpchQuery {
       .join(avg_customer)
       .filter($"c_acctbal" > $"avg_acctbal")
       .groupBy($"cntrycode")
-      .agg(count($"c_acctbal"), sum($"c_acctbal"), concat(lit("["), concat_ws("+", collect_list($"c_acctbal_var")), lit("]")))
+      .agg(count($"c_acctbal"), sum($"c_acctbal"), concat(lit("("), concat_ws("+", collect_list($"c_acctbal_var")), lit(")")))
       .sort($"cntrycode"))
   }
 }
